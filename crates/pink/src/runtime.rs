@@ -2,7 +2,10 @@ mod extension;
 mod pallet_pink;
 mod weights;
 
-use std::time::{Duration, Instant};
+use std::{
+    sync::RwLock,
+    time::{Duration, Instant},
+};
 
 use crate::types::{AccountId, Balance, BlockNumber, Hash, Hashing, Index};
 use frame_support::{
@@ -13,7 +16,7 @@ use pallet_contracts::{Config, Frame, Schedule};
 use sp_runtime::{generic::Header, traits::IdentityLookup};
 
 pub use extension::{get_side_effects, ExecSideEffects};
-pub use pink_extension::{HookPoint, Message, OspMessage, PinkEvent};
+pub use pink_extension::{EcdhPublicKey, HookPoint, Message, OspMessage, PinkEvent};
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<PinkRuntime>;
 type Block = frame_system::mocking::MockBlock<PinkRuntime>;
@@ -164,6 +167,11 @@ pub trait EventCallbacks {
 
 pub type BoxedEventCallbacks = Box<dyn EventCallbacks>;
 
+pub struct CallModeInfo {
+    pub mode: CallMode,
+    pub worker_pubkey: EcdhPublicKey,
+}
+
 struct CallInfo {
     mode: CallMode,
     start_at: Instant,
@@ -171,6 +179,12 @@ struct CallInfo {
 }
 
 environmental::environmental!(call_info: CallInfo);
+
+static WORKER_PUBKEY: RwLock<EcdhPublicKey> = RwLock::new([0; 32]);
+
+pub fn set_worker_pubkey(key: EcdhPublicKey) {
+    *WORKER_PUBKEY.write().unwrap() = key;
+}
 
 pub fn using_mode<T>(
     mode: CallMode,
@@ -185,8 +199,11 @@ pub fn using_mode<T>(
     call_info::using(&mut info, f)
 }
 
-pub fn get_call_mode() -> Option<CallMode> {
-    call_info::with(|info| info.mode)
+pub fn get_call_mode_info() -> Option<CallModeInfo> {
+    call_info::with(|info| CallModeInfo {
+        mode: info.mode,
+        worker_pubkey: *WORKER_PUBKEY.read().unwrap(),
+    })
 }
 
 pub fn get_call_elapsed() -> Option<Duration> {

@@ -112,6 +112,10 @@ pub trait PinkExt {
     /// Get (total, free) balance of given contract
     #[ink(extension = 16, handle_status = false, returns_result = false)]
     fn balance_of(account: AccountId) -> (Balance, Balance);
+
+    /// Get worker public key. Query only.
+    #[ink(extension = 17, handle_status = false, returns_result = false)]
+    fn worker_pubkey() -> crate::EcdhPublicKey;
 }
 
 pub fn pink_extension_instance() -> <PinkExt as ChainExtensionInstance>::Instance {

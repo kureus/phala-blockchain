@@ -122,6 +122,10 @@ impl ext::PinkExtBackend for MockExtension {
     ) -> Result<(pink_extension::Balance, pink_extension::Balance), Self::Error> {
         Ok((0, 0))
     }
+
+    fn worker_pubkey(&self) -> Result<crate::EcdhPublicKey, Self::Error> {
+        Ok(Default::default())
+    }
 }
 
 thread_local! {

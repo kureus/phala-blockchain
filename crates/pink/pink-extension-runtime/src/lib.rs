@@ -5,7 +5,7 @@ use pink_extension::{
     chain_extension::{
         self as ext, HttpRequest, HttpResponse, PinkExtBackend, SigType, StorageQuotaExceeded,
     },
-    Balance, EcdsaPublicKey, EcdsaSignature, Hash,
+    Balance, EcdhPublicKey, EcdsaPublicKey, EcdsaSignature, Hash,
 };
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
@@ -243,6 +243,10 @@ impl<T: PinkRuntimeEnv, E: From<&'static str>> PinkExtBackend for DefaultPinkExt
 
     fn balance_of(&self, _account: ext::AccountId) -> Result<(Balance, Balance), Self::Error> {
         Ok((0, 0))
+    }
+
+    fn worker_pubkey(&self) -> Result<EcdhPublicKey, Self::Error> {
+        Err("Worker public key is unavailable".into())
     }
 }
 
